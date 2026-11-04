@@ -31,7 +31,7 @@ class MyServerCallbacks : public BLEServerCallbacks {
 };
 
 // MAX30102
-MAX30105 PulseSensor;
+MAX30105 Sensor;
 
 #define No_Samples 100
 #define New_Samples 50
@@ -50,14 +50,14 @@ int8_t validHeartRate;
 // Read one sensor sample
 void readSensorSample(uint32_t &redValue, uint32_t &irValue) {
 
-    while (PulseSensor.available() == false) {
-        PulseSensor.check();
+    while (Sensor.available() == false) {
+        Sensor.check();
     }
 
-    redValue = PulseSensor.getRed();
-    irValue = PulseSensor.getIR();
+    redValue = Sensor.getRed();
+    irValue = Sensor.getIR();
 
-    PulseSensor.nextSample();
+    Sensor.nextSample();
 }
 
 
@@ -82,16 +82,16 @@ void setup() {
     Wire.begin();
 
     // MAX30102 initialization
-    if (!PulseSensor.begin(Wire, I2C_SPEED_FAST)) {
+    if (!Sensor.begin(Wire, I2C_SPEED_FAST)) {
 
-        Serial.println("MAX3010X sensor not found");
+        Serial.println("sensor not found");
 
         while (1);
     }
 
-    Serial.println("MAX30102 found");
+    Serial.println("sensor found");
 
-    // Sensor configuration, not validated.
+    // Sensor configuration, not validated cause of noise errors
     byte ledBrightness = 60;
     byte sampleAverage = 4;
     byte ledMode = 2;
@@ -99,7 +99,7 @@ void setup() {
     int pulseWidth = 411;
     int adcRange = 4096;
 
-    PulseSensor.setup(
+    Sensor.setup(
         ledBrightness,
         sampleAverage,
         ledMode,
@@ -108,11 +108,11 @@ void setup() {
         adcRange
     );
 
-    PulseSensor.setPulseAmplitudeRed(0x0A);
-    PulseSensor.setPulseAmplitudeGreen(0);
+    Sensor.setPulseAmplitudeRed(0x0A);
+    Sensor.setPulseAmplitudeGreen(0);
 
 
-    // Collect initial 100 samples, latency will occur initially when device is on.
+    // initial collection of samples. the first value of both heart rate and oxygen level will take time cause of latency 
     Serial.println("Collecting initial samples...");
 
     for (int i = 0; i < No_Samples; i++) {
